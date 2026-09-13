@@ -1,0 +1,17 @@
+[Unit]
+Description=Autonomous Serving Robot ROS 2 stack
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=REPLACE_USER
+Environment=ROS_DISTRO=jazzy
+ExecStart=/bin/bash -lc 'source /opt/ros/${ROS_DISTRO}/setup.bash && source /home/REPLACE_USER/autonomous_serving_robot_ws/install/setup.bash && ros2 launch serving_robot bringup.launch.py'
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+
+# Keep this service disabled until the physical motor interface has been tested.
