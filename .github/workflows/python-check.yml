@@ -11,4 +11,6 @@ jobs:
         with:
           python-version: '3.12'
       - name: Compile Python sources
-        run: python -m compileall serving_robot
+        run: python -m compileall serving_robot tests
+      - name: Run unit tests
+        run: python -m pytest -q
