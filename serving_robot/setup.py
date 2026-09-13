@@ -5,7 +5,7 @@ package_name = 'serving_robot'
 
 setup(
     name=package_name,
-    version='0.1.0',
+    version='0.2.0',
     packages=[package_name],
     data_files=[
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
@@ -20,6 +20,8 @@ setup(
             'motor_bridge = serving_robot.motor_bridge:main',
             'odometry = serving_robot.odometry:main',
             'diagnostics = serving_robot.diagnostics:main',
+            'mission_manager = serving_robot.mission_manager:main',
+            'waypoint_server = serving_robot.waypoint_server:main',
         ],
     },
 )
