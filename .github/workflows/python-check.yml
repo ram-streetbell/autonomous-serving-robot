@@ -28,3 +28,11 @@ assert Path('scripts/robot_setup_app.py').exists()
 assert Path('scripts/commissioning_check.py').exists()
 print('package and commissioning files present')
 PY
+      - name: Package test build
+        run: git archive --format=zip --output=autonomous-serving-robot-0.4.0.zip HEAD
+      - name: Upload test build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: autonomous-serving-robot-0.4.0
+          path: autonomous-serving-robot-0.4.0.zip
+          if-no-files-found: error
