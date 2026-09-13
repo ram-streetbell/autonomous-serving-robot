@@ -11,8 +11,20 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install test tools
-        run: python -m pip install pytest
+        run: python -m pip install pytest pyserial
       - name: Compile Python sources
-        run: python -m compileall serving_robot tests
+        run: python -m compileall serving_robot scripts tests
       - name: Run unit tests
         run: python -m pytest -q
+      - name: Validate package metadata
+        run: python - <<'PY'
+from pathlib import Path
+import xml.etree.ElementTree as ET
+ET.parse('serving_robot/package.xml')
+assert Path('serving_robot/setup.py').exists()
+assert Path('serving_robot/launch/hardware.launch.py').exists()
+assert Path('serving_robot/launch/autonomy.launch.py').exists()
+assert Path('scripts/robot_setup_app.py').exists()
+assert Path('scripts/commissioning_check.py').exists()
+print('package and commissioning files present')
+PY
