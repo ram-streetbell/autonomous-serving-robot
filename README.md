@@ -13,52 +13,19 @@ A Linux/Raspberry Pi software stack for converting the existing differential-dri
 
 The Zbotic AI0179 exposes `VR` (0–5 V speed), `ZF` (direction), `EL` (enable), `M` (tachometer pulse), and Hall inputs. Its published specification is 12–36 V, <=15 A and <=500 W. **Do not connect Raspberry Pi GPIO directly to a 5 V signal.** Use appropriate level shifting/isolation and verify the actual board wiring before applying power.
 
-## What this repository provides
+## Included
 
-- ROS 2 robot bring-up structure
-- Differential-drive kinematics and odometry node
-- Configurable Zbotic motor-controller interface
-- LiDAR/IMU topic diagnostics
-- SLAM Toolbox launch configuration
-- Nav2 launch/configuration entry points
-- Safe startup and emergency-stop behavior
-- A lightweight Linux control GUI/API
-- Hardware and software self-test scripts
-- One-command installation path
-
-## Architecture
-
-```text
-                 +----------------------+
-                 | Linux / Raspberry Pi |
-                 |     ROS 2            |
-                 +----------+-----------+
-                            |
-             +--------------+--------------+
-             |              |              |
-          LiDAR           IMU        Robot controller
-             |              |              |
-             +-------+------+              |
-                     |                     |
-                   SLAM                 cmd_vel
-                     |                     |
-                    Map              motor_bridge
-                     |                     |
-                 Nav2 planner              |
-                     |                     |
-                  cmd_vel                  |
-                     +----------+----------+
-                                |
-                    +-----------+-----------+
-                    |                       |
-              Left Zbotic             Right Zbotic
-                    |                       |
-              Left BLDC/Hall          Right BLDC/Hall
-```
+- ROS 2 differential-drive bring-up
+- Wheel-command kinematics and odometry
+- Zbotic integration boundary
+- LiDAR/IMU diagnostics
+- SLAM Toolbox mapping launch
+- Nav2 integration entry point
+- Linux control panel
+- One-command Ubuntu installer
+- Hardware commissioning documentation
 
 ## Quick start
-
-On Ubuntu 22.04/24.04:
 
 ```bash
 git clone https://github.com/ram-streetbell/autonomous-serving-robot.git
@@ -67,29 +34,54 @@ chmod +x scripts/install.sh
 ./scripts/install.sh
 ```
 
-Then configure `config/robot.yaml` and run:
+Run the base stack:
 
 ```bash
-source /opt/ros/$ROS_DISTRO/setup.bash
-source ~/autonomous_serving_robot_ws/install/setup.bash
+source ~/.robot_env
 ros2 launch serving_robot bringup.launch.py
+```
+
+Open the simple Linux control panel in another terminal:
+
+```bash
+python3 scripts/control_gui.py
+```
+
+## Mapping
+
+With a compatible LiDAR publishing `/scan` and a valid odometry/TF chain:
+
+```bash
+ros2 launch slam_toolbox online_async_launch.py
+```
+
+Drive slowly with the control panel and save the resulting map using the standard ROS 2 map-server tools.
+
+## Architecture
+
+```text
+LiDAR + IMU -> ROS 2 -> SLAM -> map
+                     |
+cmd_vel -> motor bridge -> wheel targets -> Zbotic -> BLDC/Hall wheels
+                     |
+                  odometry
 ```
 
 ## Safety
 
-Start with wheels off the ground. Keep the hardware enable line disabled until the controller and sensor wiring has been verified. The software defaults to zero velocity and contains a watchdog that stops motion when command messages time out.
+Start with the wheels off the ground. Keep the physical motor-enable path disabled until the controller, Hall wiring and signal levels are verified. The software starts in a non-hardware-driving simulation mode and the command watchdog returns wheel targets to zero when commands time out.
 
 ## Current implementation boundary
 
-The software is deliberately hardware-configurable. Exact Hall wire order, motor pole/pulse relationship, controller signal voltage behavior, LiDAR model and IMU model must be verified on the physical robot before autonomous driving. The Zbotic product page itself warns that Hall wire order can vary between motor manufacturers and incorrect wiring can cause abnormal startup or excessive current.
+The software side is now organized as the complete ROS 2 foundation, but final physical motor actuation cannot be honestly marked complete until the exact interface hardware, Hall order, motor pole/pulse relationship, LiDAR model and IMU model on the robot are verified. The Zbotic supplier specifically warns that Hall wire order can vary between motors and incorrect sequencing can cause abnormal operation or excessive current.
 
 ## Project layout
 
 ```text
 config/                 Robot parameters
 launch/                 ROS 2 launch files
-serving_robot/          Python ROS 2 nodes
-scripts/                Installer and hardware diagnostics
-systemd/                Optional auto-start service
-docs/                   Hardware/software notes
+serving_robot/          Python ROS 2 package
+scripts/                Installer and Linux control panel
+docs/                   Hardware integration notes
+.github/workflows/      Automated syntax checks
 ```
