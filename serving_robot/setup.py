@@ -14,11 +14,12 @@ setup(
         ('share/' + package_name + '/launch', glob('launch/*.py')),
         ('share/' + package_name + '/urdf', glob('urdf/*')),
     ],
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'pyserial'],
     zip_safe=True,
     entry_points={
         'console_scripts': [
             'motor_bridge = serving_robot.motor_bridge:main',
+            'esp32_bridge = serving_robot.esp32_bridge:main',
             'odometry = serving_robot.odometry:main',
             'diagnostics = serving_robot.diagnostics:main',
             'mission_manager = serving_robot.mission_manager:main',
