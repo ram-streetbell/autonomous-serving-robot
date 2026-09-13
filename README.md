@@ -1,26 +1,34 @@
 # Autonomous Serving Robot
 
-A Linux/Raspberry Pi software stack for converting the existing differential-drive RC-style platform into an autonomous mapping and navigation robot.
+A Linux/Raspberry Pi software stack for converting the existing differential-drive platform into an autonomous indoor serving robot.
 
 ## Target hardware
 
 - Raspberry Pi or Ubuntu Linux computer
-- Two 6-inch BLDC hoverboard-style Hall motors
-- One Zbotic AI0179 12–36 V / 500 W Hall BLDC controller per motor
-- 2D LiDAR supported by ROS 2 `sensor_msgs/LaserScan`
-- IMU supported by ROS 2 `sensor_msgs/Imu`
-- Optional ESP32 for low-level GPIO/level shifting
+- Two BLDC Hall motors
+- Zbotic AI0179 12–36 V / 500 W Hall BLDC controller per motor
+- 2D LiDAR publishing `sensor_msgs/LaserScan`
+- IMU publishing `sensor_msgs/Imu`
+- Optional ESP32 for low-level GPIO, DAC and level shifting
 
-The Zbotic AI0179 exposes `VR` (0–5 V speed), `ZF` (direction), `EL` (enable), `M` (tachometer pulse), and Hall inputs. Its published specification is 12–36 V, <=15 A and <=500 W. **Do not connect Raspberry Pi GPIO directly to a 5 V signal.** Use appropriate level shifting/isolation and verify the actual board wiring before applying power.
+The Zbotic AI0179 exposes `VR` (0–5 V speed), `ZF` (direction), `EL` (enable), `M` (tachometer pulse), and Hall inputs. Do not connect Raspberry Pi GPIO directly to a 5 V signal. Use appropriate interface circuitry and verify wiring before applying power.
 
-## Included
+## Current release
+
+**v0.2.0 — Autonomous Navigation Foundation**
+
+Included in this release:
 
 - ROS 2 differential-drive bring-up
-- Wheel-command kinematics and odometry
-- Zbotic integration boundary
+- Wheel-command kinematics and safety watchdog
+- Odometry framework
+- Robot URDF and TF structure
 - LiDAR/IMU diagnostics
 - SLAM Toolbox mapping launch
-- Nav2 integration entry point
+- Nav2 configuration and autonomy launch
+- Table/base waypoint mission manager
+- JSON serving command interface
+- Tablet browser control UI through rosbridge
 - Linux control panel
 - One-command Ubuntu installer
 - Hardware commissioning documentation
@@ -41,11 +49,13 @@ source ~/.robot_env
 ros2 launch serving_robot bringup.launch.py
 ```
 
-Open the simple Linux control panel in another terminal:
+For tablet control, start rosbridge:
 
 ```bash
-python3 scripts/control_gui.py
+ros2 launch rosbridge_server rosbridge_websocket_launch.xml
 ```
+
+Then open `tablet/index.html` from a device that can reach the Ubuntu machine. The tablet page can send manual `/cmd_vel` commands and serving waypoint commands.
 
 ## Mapping
 
@@ -55,33 +65,40 @@ With a compatible LiDAR publishing `/scan` and a valid odometry/TF chain:
 ros2 launch slam_toolbox online_async_launch.py
 ```
 
-Drive slowly with the control panel and save the resulting map using the standard ROS 2 map-server tools.
+Drive slowly under supervision and save the map with ROS 2 map-server tools.
+
+## Autonomous navigation
+
+After a map has been saved and the robot dimensions/sensors have been verified:
+
+```bash
+ros2 launch serving_robot autonomy.launch.py map:=/path/to/map.yaml
+```
+
+The serving waypoint interface accepts JSON on `/serving/command`:
+
+```bash
+ros2 topic pub --once /serving/command std_msgs/msg/String "{data: '{\"go\":\"table_1\"}'}"
+```
+
+Default example waypoints are `table_1`, `table_2`, and `base`. Replace them with measured restaurant coordinates before real operation.
 
 ## Architecture
 
 ```text
-LiDAR + IMU -> ROS 2 -> SLAM -> map
-                     |
-cmd_vel -> motor bridge -> wheel targets -> Zbotic -> BLDC/Hall wheels
-                     |
-                  odometry
+LiDAR + IMU -> ROS 2 -> SLAM/Nav2 -> map + path
+                              |
+cmd_vel -> motor bridge -> low-level interface -> Zbotic -> BLDC/Hall wheels
+                              |
+                           odometry
+                              |
+Tablet -> rosbridge -> /cmd_vel and /serving/command
 ```
 
 ## Safety
 
-Start with the wheels off the ground. Keep the physical motor-enable path disabled until the controller, Hall wiring and signal levels are verified. The software starts in a non-hardware-driving simulation mode and the command watchdog returns wheel targets to zero when commands time out.
+Start with the wheels off the ground. Keep the physical motor-enable path disabled until the controller, Hall wiring and signal levels are verified. The current motor bridge deliberately operates as a safe software simulation interface and does not directly energize the motors.
 
-## Current implementation boundary
+## Hardware-gated completion
 
-The software side is now organized as the complete ROS 2 foundation, but final physical motor actuation cannot be honestly marked complete until the exact interface hardware, Hall order, motor pole/pulse relationship, LiDAR model and IMU model on the robot are verified. The Zbotic supplier specifically warns that Hall wire order can vary between motors and incorrect sequencing can cause abnormal operation or excessive current.
-
-## Project layout
-
-```text
-config/                 Robot parameters
-launch/                 ROS 2 launch files
-serving_robot/          Python ROS 2 package
-scripts/                Installer and Linux control panel
-docs/                   Hardware integration notes
-.github/workflows/      Automated syntax checks
-```
+The software foundation is substantially built, but physical autonomy is not marked complete until the actual motor interface, Hall/tach feedback, LiDAR, IMU, wheel dimensions and electrical safety path are verified on the robot and tested under supervision.
