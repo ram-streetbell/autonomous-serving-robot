@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>serving_robot</name>
+  <version>0.1.0</version>
+  <description>Autonomous differential-drive serving robot stack.</description>
+  <maintainer email="ram@streetbell.com">Streetbell</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>ament_python</buildtool_depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
+  <exec_depend>launch</exec_depend>
+  <exec_depend>launch_ros</exec_depend>
+</package>
