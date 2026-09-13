@@ -16,14 +16,13 @@ setup(
     ],
     install_requires=['setuptools', 'pyserial'],
     zip_safe=True,
-    entry_points={
-        'console_scripts': [
-            'motor_bridge = serving_robot.motor_bridge:main',
-            'esp32_bridge = serving_robot.esp32_bridge:main',
-            'odometry = serving_robot.odometry:main',
-            'diagnostics = serving_robot.diagnostics:main',
-            'mission_manager = serving_robot.mission_manager:main',
-            'waypoint_server = serving_robot.waypoint_server:main',
-        ],
-    },
+    entry_points={'console_scripts': [
+        'motor_bridge = serving_robot.motor_bridge:main',
+        'esp32_bridge = serving_robot.esp32_bridge:main',
+        'encoder_odometry = serving_robot.encoder_odometry:main',
+        'odometry = serving_robot.odometry:main',
+        'diagnostics = serving_robot.diagnostics:main',
+        'mission_manager = serving_robot.mission_manager:main',
+        'waypoint_server = serving_robot.waypoint_server:main',
+    ]},
 )
