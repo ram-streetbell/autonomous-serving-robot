@@ -1,0 +1,27 @@
+robot:
+  name: serving_robot
+  wheel_radius_m: 0.0762
+  wheel_separation_m: 0.38
+  max_linear_mps: 0.35
+  max_angular_rps: 0.9
+  cmd_timeout_s: 0.5
+
+motor_controller:
+  type: zbotic_ai0179
+  speed_input: analog_0_5v
+  enable_active_high: true
+  reverse_active_high: true
+  hardware_channels_pending_verification: true
+
+sensors:
+  lidar:
+    scan_topic: /scan
+    frame_id: laser
+  imu:
+    topic: /imu/data
+    frame_id: imu_link
+
+frames:
+  base_link: base_link
+  odom: odom
+  map: map
