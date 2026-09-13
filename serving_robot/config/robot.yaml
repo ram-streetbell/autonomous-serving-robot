@@ -1,0 +1,12 @@
+robot:
+  wheel_radius_m: 0.0762
+  wheel_separation_m: 0.38
+  max_linear_mps: 0.35
+  max_angular_rps: 0.9
+  cmd_timeout_s: 0.5
+motor_controller:
+  type: zbotic_ai0179
+  hardware_channels_pending_verification: true
+sensors:
+  lidar_topic: /scan
+  imu_topic: /imu/data
